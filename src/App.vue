@@ -1,21 +1,14 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <!--<HelloWorld msg="Welcome to Your Vue.js App"/>-->
-    <FormSample />
+    <!--当前路由地址所对应的内容-->
+    <router-view />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue';
-import FormSample from './components/Form.vue';
 
 export default {
   name: 'app',
-  components: [
-    HelloWorld,
-    FormSample
-  ]
 }
 </script>
 
@@ -26,6 +19,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
