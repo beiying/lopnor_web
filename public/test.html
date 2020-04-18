@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <title>vuetest</title>
+    <style>
+        .fade-enter {
+            opacity: 0;
+        }
+        .fade-enter-active {
+            transition: opacity 3s;
+        }
+        .fade-leave-to {
+            opacity: 0;
+        }
+        .fade-leave-active {
+            transition: opacity 3s;
+        }
+        .v-enter, .v-leave-to {
+            opacity: 0;
+        }
+        .v-enter-active, .v-leave-active {
+            transition: opacity 1s;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <input type="text" v-model="inputText"/>
+    <button v-on:click="addClass">提交</button>
+    <ul>
+        <todo-item v-bind:content="item" v-bind:index="index" v-on:delete="handleItemDelete"
+                   v-for="(item, index) in classList"></todo-item>
+    </ul>
+    <div v-bind:class="{activated: isActivated}" v-on:click="handleDivClick">Style绑定</div><!--//动态修改样式-->
+    <div v-bind:style="customStyle">通过对象绑定Style样式</div>
+    <div v-if="shouldShow">条件渲染<input key="username"/></div>
+    <div v-else>必须与v-if挨着 <input key="password"/></div>
+    <div v-show="shouldShow">条件渲染，display为none(不需要频繁添加或删除DOM节点)</div>
+    <div ref="domNode" @click="handleRefClick">通过ref获取DOM节点</div>
+    <counter ref="firstNum" @change="handleCounterChange"></counter>
+    <counter ref="secondNum" @change="handleCounterChange"></counter>
+    <div>{{total}}</div>
+    <transition name="fade" @before-enter="handleBeforeEnter" @enter="handleEnter" @after-enter="handleAfterEnter">
+        <div v-if="animationShow">过渡动画</div>
+    </transition>
+    <button @click="startFadeAnimation">启动动画</button>
+    <transition mode="out-in">
+        //动态组件
+        <component :is="type"></component>
+    </transition>
+    <button @click="startOutInAnimation">动态组件的动画</button>
+    <fade :show="animationShow">
+        <div>动画的封装</div>
+    </fade>
+    <button @click="startFadeAnimation">启动动画</button>
+</div>
+<script>
+    Vue.component("TodoItem", {//全局组件
+        props: {
+            content: {//设置组件参数的校验条件
+                type: String,
+                required: false,
+                //default: "todo",//设置value值
+                validator: function(value) {//组件参数校验器
+                    return (value.length < 5);
+                }
+            },
+            index: {}
+        },
+        template: "<li v-on:click='handleItemClick'>{{content}}</li>",
+        methods: {
+            handleItemClick: function () {
+                this.$emit("delete", this.index);
+            }
+        }
+    });
+    Vue.component("counter", {
+        template: "<div @click='handleCounterClick'>{{number}}</div>",
+        data: function () {
+            return {
+                number: 0
+            }
+        },
+        methods: {
+            handleCounterClick: function () {
+                this.number++;
+                this.$emit("change")
+            }
+        }
+    });
+    Vue.component("child", {
+       template: "<div>child</div>"
+    });
+    Vue.component("child-one", {
+        template: "<div>child-one</div>"
+    });
+
+    Vue.component("fade", {
+        props: ['show'],
+       template: "<transition><slot v-if='show'></slot></transition>"
+    });
+
+    var NewTodoItem = {//局部组件
+        props: ["content"],
+        template: "<li>{{content}}</li>"
+    };
+    var app = new Vue({
+        el: "#app",
+        components: {
+            NewTodoItem: NewTodoItem
+        },
+        data: {
+            classList: [],
+            inputText: "",
+            isActivated: false,
+            shouldShow: false,
+            customStyle: {
+                color: "red",
+            },
+            total: 0,
+            animationShow: false,
+            type: "child"
+        },
+        // 计算属性，是一个函数类型对象。存在缓存，只有依赖的值发生改变了才会重新计算，
+        // 这样能够提高性能，这是比方法和侦听属性优秀的地方。
+        computed: {
+            firstClass: function () {
+                return this.classList.length > 0 ? this.classList[0] : "";
+            },
+            lastClass: {
+                get: function () {
+                    return this.classList.length > 0 ? this.classList[this.classList.length - 1] : "";
+                },
+                set: function (className) {
+                    this.classList.push(className);
+                }
+            }
+        },
+        methods: {
+            addClass: function () {
+                this.classList.push(this.inputText)
+                this.inputText = ""
+            },
+            handleItemDelete: function (index) {
+                this.classList.splice(index, 1);
+            },
+            handleDivClick: function () {
+                this.isActivated = true;
+            },
+            handleRefClick: function () {
+                alert(this.$refs.domNode.innerHTML);
+            },
+            handleCounterChange: function () {
+                this.total = this.$refs.firstNum.number + this.$refs.secondNum.number;
+            },
+            startFadeAnimation: function() {
+                this.animationShow = this.animationShow ? false : true;
+            },
+            handleBeforeEnter: function() {
+
+            },
+            handleEnter: function() {
+
+            },
+            handleAfterEnter: function() {
+
+            },
+            startOutInAnimation: function() {
+                this.type = this.type === "child" ? "child-one" : "child";
+            }
+        },
+        beforeCreate() {//Vue实例被初始化的时候调用
+            console.log("before create");
+        },
+        created() {
+            console.log("created");
+        },
+        beforeMount() {//页面还没有被渲染
+            console.log("before mount");
+        },
+        mounted() {//页面已经被渲染
+            console.log("mounted");
+        },
+        beforeUpdate() {//数据发生改变，页面重新被渲染时会调用
+            console.log("before update");
+        },
+        updated() {
+            console.log("update");
+        },
+        beforeDestroy() {
+            console.log("before destroy");
+        },
+        destroyed() {//destroy方法被调用后才会执行
+            console.log("destroyed");
+        }
+    });
+</script>
+</body>
+</html>
